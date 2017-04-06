@@ -1,6 +1,7 @@
 package com.amilek.screens;
 
 import com.amilek.entities.Ball;
+import com.amilek.entities.MiddleLine;
 import com.amilek.entities.Paddle;
 import com.amilek.main.Pong;
 import com.badlogic.gdx.Gdx;
@@ -29,11 +30,12 @@ public class GameScreen implements Screen {
     private Paddle leftPaddle;
     private Paddle rightPaddle;
     private Ball ball;
+    private MiddleLine middleLine;
+
+    private float centerForBall;
 
     private int playerOneScore = 0;
     private int playerTwoScore = 0;
-
-    private boolean gameOn;
 
     public GameScreen(final Pong game) {
         this.game = game;
@@ -47,6 +49,9 @@ public class GameScreen implements Screen {
 
         shapeRenderer.setProjectionMatrix(camera.combined);
 
+        middleLine = new MiddleLine();
+        middleLine.setPosition(Pong.WIDTH / 2 - middleLine.getWidth(), 0);
+
         leftPaddle = new Paddle();
         leftPaddleX = borderSpacing;
         leftPaddle.setPosition(leftPaddleX, Pong.HEIGHT / 2 - leftPaddle.getHeight() / 2);
@@ -56,7 +61,8 @@ public class GameScreen implements Screen {
         rightPaddle.setPosition(rightPaddleX, Pong.HEIGHT / 2 - rightPaddle.getHeight() / 2);
 
         ball = new Ball();
-        ball.resetBall();
+        centerForBall = Pong.HEIGHT / 2 - ball.getHeight() / 2;
+        playerOneServes();
     }
 
     @Override
@@ -80,34 +86,59 @@ public class GameScreen implements Screen {
     }
 
     private void checkCollisions() {
-        /*if (ball.mask.overlaps(leftPaddle.mask)) {
-            ball.setPosition(leftPaddle.getX() + leftPaddle.getWidth(), ball.getY());
-            ball.bounce();
-        } else if(ball.mask.overlaps(rightPaddle.mask)){
-            ball.setPosition(rightPaddle.getX() - rightPaddle.getWidth(), ball.getY());
-            ball.bounce();
-        }*/
 
-        if (ball.overlaps(leftPaddle.mask)) {
-           System.out.println("ball y = " + ball.getY());
-           System.out.println("paddle y = " + leftPaddle.getY());
+        float ballCenter = ball.getY() + ball.getHeight()/2;
 
+        if (ball.overlaps(leftPaddle)) {
+            ball.setPosition(leftPaddle.getX() + leftPaddle.getWidth() + 1, ball.getY());
+
+            float paddleCenter = leftPaddle.getY() + leftPaddle.getHeight() / 2;
+            float relativeIntersectY = paddleCenter - ballCenter;
+            ball.goRight(relativeIntersectY / leftPaddle.getHeight() / 2);
         }
+        if (ball.overlaps(rightPaddle)) {
+            ball.setPosition(rightPaddle.getX() - ball.getWidth() - 1, ball.getY());
+
+            float paddleCenter = rightPaddle.getY() + rightPaddle.getHeight() / 2;
+            float relativeIntersectY = paddleCenter - ballCenter;
+            ball.goLeft(relativeIntersectY / rightPaddle.getHeight() / 2);
+        }
+
+        //top and bottom screen bounds bounce
+        if (ball.getY() <= 0 || ball.getY() + ball.getHeight() >= Pong.HEIGHT) {
+            ball.bounce();
+        }
+
+        //see if someone scored
+        if (ball.getX() + ball.getWidth() < 0) {
+            playerOneScore++;
+            playerOneServes();
+        }
+        if (ball.getX() > Pong.WIDTH) {
+            playerTwoScore++;
+            playerTwoServes();
+        }
+
+    }
+
+    private void playerOneServes() {
+        ball.setPosition(leftPaddleX + leftPaddle.getWidth() + 4, centerForBall);
+        ball.goRight(0);
+    }
+
+    private void playerTwoServes() {
+        ball.setPosition(rightPaddleX - ball.getWidth() - 4, centerForBall);
+        ball.goLeft(0);
     }
 
     private void handleInput() {
 
-        if (gameOn) {
-            leftPaddle.setMoveUp(Gdx.input.isKeyPressed(Input.Keys.W));
-            leftPaddle.setMoveDown(Gdx.input.isKeyPressed(Input.Keys.S));
+        leftPaddle.setMoveUp(Gdx.input.isKeyPressed(Input.Keys.W));
+        leftPaddle.setMoveDown(Gdx.input.isKeyPressed(Input.Keys.S));
 
-            rightPaddle.setMoveUp(Gdx.input.isKeyPressed(Input.Keys.UP));
-            rightPaddle.setMoveDown(Gdx.input.isKeyPressed(Input.Keys.DOWN));
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            ball.launchBall();
-            gameOn = true;
-        }
+        rightPaddle.setMoveUp(Gdx.input.isKeyPressed(Input.Keys.UP));
+        rightPaddle.setMoveDown(Gdx.input.isKeyPressed(Input.Keys.DOWN));
+        rightPaddle.setMoveDown(Gdx.input.isKeyPressed(Input.Keys.DOWN));
     }
 
 
@@ -118,6 +149,12 @@ public class GameScreen implements Screen {
         leftPaddle.draw(shapeRenderer);
         rightPaddle.draw(shapeRenderer);
         ball.draw(shapeRenderer);
+        middleLine.draw(shapeRenderer);
+
+        batch.begin();
+        font.draw(batch, Integer.toString(playerOneScore), Pong.WIDTH / 2 - 40, Pong.HEIGHT - 50);
+        font.draw(batch, Integer.toString(playerTwoScore), Pong.WIDTH / 2 + 40, Pong.HEIGHT - 50);
+        batch.end();
     }
 
     @Override
@@ -127,19 +164,16 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
-        gameOn = false;
 
     }
 
     @Override
     public void resume() {
-        gameOn = true;
 
     }
 
     @Override
     public void hide() {
-        gameOn = false;
 
     }
 

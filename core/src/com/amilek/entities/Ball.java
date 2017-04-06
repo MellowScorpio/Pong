@@ -9,43 +9,42 @@ public class Ball extends Rectangle {
 
     private float dx;
     private float dy;
-    private int speed = 250;
+    private float speed;
+    private float minSpeed = 450;
     private float radians;
-    private boolean launched = false;
+    private final float maxBounceAngle;
 
     public Ball() {
         this.width = this.height = 10;
         this.radians = 0;
+        speed = minSpeed;
+        maxBounceAngle = MathUtils.PI ;
     }
 
-    public void launchBall() {
-        resetBall();
-        launched = true;
-
-        //random direction but in PI/3 constraints
-        radians = MathUtils.random(MathUtils.PI / 3) - MathUtils.PI / 6;
-        //random player
-        if (MathUtils.randomBoolean()) speed *= -1;
-        //System.out.println("radians = " + radians);
+    public void goRight(float normalizedRelativeIntersectionY) {
+        //System.out.println("normalizedRelativeIntersectionY = " + normalizedRelativeIntersectionY);
+        speed = minSpeed * (1+ Math.abs(normalizedRelativeIntersectionY));
+        System.out.println("speed = " + speed);
+        radians = normalizedRelativeIntersectionY * maxBounceAngle;
+        //System.out.println("radians after  = " + radians);
     }
 
-    public void resetBall() {
-        x = Pong.WIDTH / 2 - width;
-        y = Pong.HEIGHT / 2 - height;
+    public void goLeft(float normalizedRelativeIntersectionY) {
+        speed = minSpeed * (1+ Math.abs(normalizedRelativeIntersectionY));
+        System.out.println("speed = " + speed);
+        radians = MathUtils.PI - normalizedRelativeIntersectionY * maxBounceAngle;
     }
 
     public void bounce() {
-
+        radians = MathUtils.PI2 - radians;
     }
 
     public void update(float dt) {
-        if (launched) {
-            dx = MathUtils.cos(radians) * speed;
-            dy = MathUtils.sin(radians) * speed;
 
-            x += dx * dt;
-            y += dy * dt;
-        }
+        dx = MathUtils.cos(radians) * speed;
+        dy = -MathUtils.sin(radians) * speed;
+        x += dx * dt;
+        y += dy * dt;
     }
 
     public void draw(ShapeRenderer shapeRenderer) {
@@ -54,5 +53,7 @@ public class Ball extends Rectangle {
         shapeRenderer.rect(x, y, width, height);
         shapeRenderer.end();
     }
+
+
 
 }

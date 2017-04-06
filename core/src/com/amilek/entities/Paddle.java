@@ -11,13 +11,9 @@ public class Paddle extends Rectangle {
     private boolean down = false;
     private int speed = 250;
 
-    public Rectangle mask;
-
     public Paddle() {
         this.width = 10;
-        this.height = 100;
-
-        mask = new Rectangle(0, 0, width, height);
+        this.height = 80;
     }
 
     public void draw(ShapeRenderer shapeRenderer) {
@@ -34,10 +30,6 @@ public class Paddle extends Rectangle {
 
         if (y > Pong.HEIGHT - height) y = Pong.HEIGHT - height;
         else if (y < 0) y = 0;
-
-        mask.x = x;
-        mask.y = y;
-
     }
 
     public void setMoveUp(boolean up) {

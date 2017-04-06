@@ -10,8 +10,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Pong extends Game {
-	public static final int WIDTH = 400;//1366;
-	public static final int HEIGHT = 200;//768;
+	public static final int WIDTH = 800;
+	public static final int HEIGHT = 500;
 
 	@Override
 	public void create () {
